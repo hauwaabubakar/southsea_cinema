@@ -13,6 +13,7 @@ class MovieListing extends StatefulWidget {
 
 class _MovieListingState extends State<MovieListing> {
   int _tickets = 1;
+  String _message = '';
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +70,21 @@ class _MovieListingState extends State<MovieListing> {
                 DropdownMenuEntry(value: 5, label: '5'),
               ],
             ),
+            const SizedBox(height: 16), // NEW
+            ElevatedButton(
+              // NEW
+              onPressed: () {
+                // NEW
+                setState(() {
+                  // NEW
+                  _message = // NEW
+                      'Added $_tickets ticket(s) for The Odyssey to your order.'; // NEW
+                }); // NEW
+              }, // NEW
+              child: const Text('Add to order'), // NEW
+            ), // NEW
+            const SizedBox(height: 8), // NEW
+            Text(_message), // NEW
           ],
         ),
       ),
