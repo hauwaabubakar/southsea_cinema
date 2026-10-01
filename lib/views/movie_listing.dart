@@ -26,6 +26,14 @@ class MovieListing extends StatelessWidget {
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
+            Row(
+              children: [
+                Text('Runtime: 2h 53m'),
+                SizedBox(width: 16),
+                Text('Rating: 15'),
+              ],
+            ),
+            SizedBox(height: 8),
             Text(
               'The Odyssey follows the Greek hero Odysseus on his dangerous '
               'journey home after the Trojan War, where he faces mythical '
