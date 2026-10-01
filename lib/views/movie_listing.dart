@@ -15,7 +15,27 @@ class MovieListing extends StatelessWidget {
         elevation: 0,
       ),
       drawer: const NavDrawer(),
-      body: const SizedBox.shrink(),
+      body: Container(
+        color: cinemaSurface,
+        padding: const EdgeInsets.all(16),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'The Odyssey',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'The Odyssey follows the Greek hero Odysseus on his dangerous '
+              'journey home after the Trojan War, where he faces mythical '
+              'creatures, gods and deadly obstacles. As he struggles to return '
+              'to his wife and kingdom, his courage, loyalty and determination '
+              'are tested at every turn.',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
