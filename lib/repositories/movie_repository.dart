@@ -16,7 +16,7 @@ class MovieRepository {
             'determination are tested at every turn.',
         screeningTime: 'Thursday 22 Oct 2026, 18:00 - ends at 20:53',
         price: 7.50,
-        posterPath: 'assets/images/the_odyssey.jpg',
+        posterPath: 'assets/images/the_odyessey.jpg',
       ),
       Movie(
         id: 'the-conjuring-2',
