@@ -25,7 +25,7 @@ class HomeView extends StatelessWidget {
       // Builds one MovieCard per film, only as each one scrolls into view.
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: movies.length,
+        itemCount: movies.length, // The number of films to display.
         itemBuilder: (context, index) {
           return MovieCard(movie: movies[index]);
         },

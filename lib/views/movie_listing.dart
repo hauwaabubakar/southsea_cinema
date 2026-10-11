@@ -1,12 +1,14 @@
 // Imports: Flutter's Material widgets, our shared colours/styles, and the drawer.
 import 'package:flutter/material.dart';
 import 'package:southsea_cinema/constants.dart';
+import 'package:southsea_cinema/models/movie.dart';
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
 
 // The widget (the fixed configuration). It is Stateful because the page
 // has data that changes: the chosen ticket count and the feedback message.
 class MovieListing extends StatefulWidget {
-  const MovieListing({super.key});
+  final Movie movie;
+  const MovieListing({super.key, required this.movie});
 
   // Tells Flutter which State class goes with this widget.
   @override
