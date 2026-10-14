@@ -122,9 +122,9 @@ class _MovieListingState extends State<MovieListing> {
                     ],
                   );
                   // The price label shown next to / below the dropdown.
-                  const price = Text(
-                    'Adult (£7.50)',
-                    style: TextStyle(color: cinemaFontWhite),
+                  final price = Text(
+                    'Adult (${widget.movie.formattedPrice})',
+                    style: const TextStyle(color: cinemaFontWhite),
                   );
 
                   // Wide window: Row (dropdown and price side by side).
