@@ -2,38 +2,6 @@ import 'package:southsea_cinema/models/movie.dart';
 
 class MovieRepository {
   List<Movie> getMovies() {
-    // Finds one film by its id, or returns null if there is no match.
-    Movie? getMovieById(String id) {
-      for (final movie in getMovies()) {
-        if (movie.id == id) {
-          return movie;
-        }
-      }
-      return null;
-    }
-
-    // Returns only the films with the given age rating.
-    List<Movie> getMoviesByAgeRating(String rating) {
-      final List<Movie> matches = [];
-      for (final movie in getMovies()) {
-        if (movie.ageRating == rating) {
-          matches.add(movie);
-        }
-      }
-      return matches;
-    }
-
-    // Returns only the films that cost maxPrice or less.
-    List<Movie> getMoviesUnderPrice(double maxPrice) {
-      final List<Movie> matches = [];
-      for (final movie in getMovies()) {
-        if (movie.price <= maxPrice) {
-          matches.add(movie);
-        }
-      }
-      return matches;
-    }
-
     return const [
       Movie(
         id: 'the-odyssey',
@@ -65,5 +33,37 @@ class MovieRepository {
         posterPath: 'assets/images/the_conjuring_2.jpg',
       ),
     ];
+  }
+
+  // Finds one film by its id, or returns null if there is no match.
+  Movie? getMovieById(String id) {
+    for (final movie in getMovies()) {
+      if (movie.id == id) {
+        return movie;
+      }
+    }
+    return null;
+  }
+
+  // Returns only the films with the given age rating.
+  List<Movie> getMoviesByAgeRating(String rating) {
+    final List<Movie> matches = [];
+    for (final movie in getMovies()) {
+      if (movie.ageRating == rating) {
+        matches.add(movie);
+      }
+    }
+    return matches;
+  }
+
+  // Returns only the films that cost maxPrice or less.
+  List<Movie> getMoviesUnderPrice(double maxPrice) {
+    final List<Movie> matches = [];
+    for (final movie in getMovies()) {
+      if (movie.price <= maxPrice) {
+        matches.add(movie);
+      }
+    }
+    return matches;
   }
 }
