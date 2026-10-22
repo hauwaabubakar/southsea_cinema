@@ -25,36 +25,39 @@ class _MovieListingState extends State<MovieListing> {
     final Movie movie = widget.movie;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(appTitle, style: cinemaHeaderStyle),
-        backgroundColor: cinemaSurface,
-        iconTheme: const IconThemeData(color: cinemaBrand),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text(appTitle)),
       drawer: const NavDrawer(),
-      body: Container(
-        width: double.infinity,
-        color: cinemaBackground,
+      // Scrolls if the content is taller than the screen.
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        // Lets the page scroll if it is taller than the screen.
-        child: SingleChildScrollView(
+        // The lighter box that holds the film details.
+        child: Container(
+          width: double.infinity,
+          color: cinemaSurface,
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title and age rating, taken from the film.
               Text(
                 '${movie.title.toUpperCase()} (${movie.ageRating})',
                 style: cinemaHeaderStyle.copyWith(fontSize: 28),
               ),
               const SizedBox(height: 16),
+              // The poster, loaded from the path stored in the film.
+              Image.asset(
+                movie.posterPath,
+                height: 250,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(height: 16),
               const Text(
                 'Southsea Cinema Room',
-                style: TextStyle(color: cinemaFontMuted),
+                style: TextStyle(color: cinemaFontWhite),
               ),
               const SizedBox(height: 8),
               Text(
                 movie.screeningTime,
-                style: const TextStyle(color: cinemaFontMuted),
+                style: const TextStyle(color: cinemaFontWhite),
               ),
               const SizedBox(height: 8),
               Text(
@@ -66,29 +69,20 @@ class _MovieListingState extends State<MovieListing> {
                 movie.description,
                 style: const TextStyle(color: cinemaFontWhite),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Select Quantities (Up to 5 in total)',
-                style: TextStyle(color: cinemaFontMuted),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Tickets',
-                style: TextStyle(
-                  color: cinemaFontWhite,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // LayoutBuilder gives the available width, so the layout
-              // can differ on narrow (phone) and wide screens.
+              const SizedBox(height: 24),
+              // LayoutBuilder gives the available width, so the layout can
+              // differ on narrow (phone) and wide screens.
               LayoutBuilder(
                 builder: (context, constraints) {
-                  // The ticket quantity dropdown. Picking a value stores it
-                  // in _tickets using setState, so the screen rebuilds.
+                  final label = Text(
+                    'Tickets (${movie.formattedPrice} each)',
+                    style: const TextStyle(color: cinemaFontWhite),
+                  );
+                  // Picking a value stores it in _tickets with setState,
+                  // so the screen rebuilds.
                   final dropdown = DropdownMenu<int>(
                     initialSelection: 0,
-                    width: 100,
+                    width: 120,
                     onSelected: (int? value) {
                       if (value != null) {
                         setState(() {
@@ -105,30 +99,21 @@ class _MovieListingState extends State<MovieListing> {
                       DropdownMenuEntry(value: 5, label: '5'),
                     ],
                   );
-                  // Price label, using the getter from the Movie model.
-                  final price = Text(
-                    'Adult (${movie.formattedPrice})',
-                    style: const TextStyle(color: cinemaFontWhite),
-                  );
 
-                  // Wide window: dropdown and price side by side.
                   if (constraints.maxWidth > 600) {
+                    // Wide: keep the label and dropdown together.
                     return Row(
                       children: [
+                        label,
+                        const SizedBox(width: 24),
                         dropdown,
-                        const SizedBox(width: 16),
-                        price,
                       ],
                     );
                   } else {
-                    // Narrow (phone): price below the dropdown.
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        dropdown,
-                        const SizedBox(height: 8),
-                        price,
-                      ],
+                    // Narrow (phone): label left, dropdown right.
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [label, dropdown],
                     );
                   }
                 },
@@ -154,7 +139,6 @@ class _MovieListingState extends State<MovieListing> {
                 child: const Text('ADD TO ORDER'),
               ),
               const SizedBox(height: 8),
-              // Empty at first, then shows _message.
               Text(
                 _message,
                 style: const TextStyle(color: cinemaBrandLight),

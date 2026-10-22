@@ -6,6 +6,7 @@ import 'package:southsea_cinema/widgets/movie_card.dart';
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
 
 class HomeView extends StatelessWidget {
+  // A widget that doesn't manage its own changing information.
   const HomeView({super.key});
 
   @override
@@ -15,12 +16,8 @@ class HomeView extends StatelessWidget {
     final List<Movie> movies = repository.getMovies();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(appTitle, style: cinemaHeaderStyle),
-        backgroundColor: cinemaSurface,
-        iconTheme: const IconThemeData(color: cinemaBrand),
-        elevation: 0,
-      ),
+      // skeleton of the app's screen
+      appBar: AppBar(title: const Text(appTitle)),
       drawer: const NavDrawer(),
       // Builds one MovieCard per film, only as each one scrolls into view.
       body: ListView.builder(

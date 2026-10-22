@@ -3,6 +3,7 @@ import 'package:southsea_cinema/constants.dart';
 import 'package:southsea_cinema/models/movie.dart';
 import 'package:southsea_cinema/views/movie_listing.dart';
 
+// A reusable card that shows ONE film on the home page.
 class MovieCard extends StatelessWidget {
   final Movie movie;
 
@@ -10,75 +11,92 @@ class MovieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: cinemaSurface,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title in the brand colour, with the age rating small and muted.
+          Text.rich(
+            TextSpan(
               children: [
-                Image.asset(
-                  movie.posterPath,
-                  width: 100,
-                  height: 150,
-                  fit: BoxFit.cover,
+                TextSpan(
+                  text: movie.title,
+                  style: const TextStyle(
+                    color: cinemaBrand,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${movie.title} (${movie.ageRating})',
-                        style: cinemaHeaderStyle,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        movie.description,
-                        style: const TextStyle(color: cinemaFontWhite),
-                      ),
-                    ],
+                TextSpan(
+                  text: ' (${movie.ageRating})',
+                  style: const TextStyle(
+                    color: cinemaFontMuted,
+                    fontSize: 16,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    movie.screeningTime,
-                    style: const TextStyle(color: cinemaFontMuted),
-                  ),
+          ),
+          const SizedBox(height: 12),
+          // Poster on the left, synopsis on the right.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                movie.posterPath,
+                width: 120,
+                height: 180,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  movie.description,
+                  style: const TextStyle(color: cinemaFontWhite),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cinemaBrand,
-                    foregroundColor: cinemaFontWhite,
-                    shape: const RoundedRectangleBorder(),
-                  ),
-                  // When pressed, open the listing page for THIS film.
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return MovieListing(movie: movie);
-                        },
-                      ),
-                    );
-                  },
-                  child: const Text('BOOK'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'BOOK TICKETS',
+            style: TextStyle(color: cinemaFontWhite),
+          ),
+          const SizedBox(height: 12),
+          // Screening time on the left, booking button on the right.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  movie.screeningTime,
+                  style: const TextStyle(color: cinemaFontWhite),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cinemaBrand,
+                  foregroundColor: cinemaFontWhite,
+                  shape: const StadiumBorder(),
+                ),
+                // Opens the listing page for THIS card's film.
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return MovieListing(movie: movie);
+                      },
+                    ),
+                  );
+                },
+                child: const Text('BOOK NOW'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
