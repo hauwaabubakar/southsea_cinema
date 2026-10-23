@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:southsea_cinema/constants.dart';
 import 'package:southsea_cinema/models/movie.dart';
 import 'package:southsea_cinema/views/movie_listing.dart';
+import 'package:southsea_cinema/widgets/primary_button.dart';
 
 // A reusable card that shows ONE film on the home page.
 class MovieCard extends StatelessWidget {
@@ -75,12 +76,8 @@ class MovieCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cinemaBrand,
-                  foregroundColor: cinemaFontWhite,
-                  shape: const StadiumBorder(),
-                ),
+              PrimaryButton(
+                label: 'BOOK NOW',
                 // Opens the listing page for THIS card's film.
                 onPressed: () {
                   Navigator.push(
@@ -92,7 +89,6 @@ class MovieCard extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('BOOK NOW'),
               ),
             ],
           ),
