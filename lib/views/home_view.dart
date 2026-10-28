@@ -5,6 +5,9 @@ import 'package:southsea_cinema/repositories/movie_repository.dart';
 import 'package:southsea_cinema/widgets/movie_card.dart';
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
 
+// NEW: Import the basket button.
+import 'package:southsea_cinema/widgets/basket_button.dart';
+
 class HomeView extends StatelessWidget {
   // A widget that doesn't manage its own changing information.
   const HomeView({super.key});
@@ -17,7 +20,13 @@ class HomeView extends StatelessWidget {
 
     return Scaffold(
       // skeleton of the app's screen
-      appBar: AppBar(title: const Text(appTitle)),
+      appBar: AppBar(
+        title: const Text(appTitle),
+        // NEW: Display the basket icon in the app bar.
+        actions: const [
+          BasketButton(),
+        ],
+      ),
       drawer: const NavDrawer(),
       // Builds one MovieCard per film, only as each one scrolls into view.
       body: ListView.builder(
