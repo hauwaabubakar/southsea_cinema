@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:southsea_cinema/constants.dart';
+import 'package:southsea_cinema/models/basket_item.dart'; // NEW
 import 'package:southsea_cinema/models/movie.dart';
+import 'package:southsea_cinema/repositories/basket_repository.dart'; // NEW
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
+import 'package:southsea_cinema/widgets/primary_button.dart';
 
-// The page for ONE film. The film is passed in when the page is opened.
+// The page for ONE film. The film is passed in when the page is opened
+// (from the BOOK NOW button on a MovieCard).
 class MovieListing extends StatefulWidget {
   final Movie movie;
 
@@ -16,8 +20,12 @@ class MovieListing extends StatefulWidget {
 }
 
 class _MovieListingState extends State<MovieListing> {
-  int _tickets = 0; // currently selected quantity
-  String _message = ''; // feedback text under the button
+  // The ticket quantity chosen in the dropdown. It changes, so this page is
+  // stateful and uses setState to redraw.
+  int _tickets = 0;
+
+  // Feedback text shown under the button.
+  String _message = '';
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +33,7 @@ class _MovieListingState extends State<MovieListing> {
     final Movie movie = widget.movie;
 
     return Scaffold(
+      // Title only. Colours, icon and elevation come from the theme.
       appBar: AppBar(title: const Text(appTitle)),
       drawer: const NavDrawer(),
       // Scrolls if the content is taller than the screen.
@@ -119,24 +128,30 @@ class _MovieListingState extends State<MovieListing> {
                 },
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cinemaBrand,
-                  foregroundColor: cinemaFontWhite,
-                  shape: const RoundedRectangleBorder(),
-                ),
-                // Builds the feedback message, then setState redraws.
+              PrimaryButton(
+                label: 'ADD TO ORDER',
+                // NEW: when pressed, add the chosen tickets to the shared
+                // basket (Worksheet 5, "Add items to the basket").
                 onPressed: () {
-                  setState(() {
-                    if (_tickets == 0) {
-                      _message = 'Please select at least one ticket.';
-                    } else {
+                  if (_tickets > 0) {
+                    // One basket line: this film plus the chosen quantity.
+                    final BasketItem item = BasketItem(
+                      movie: movie,
+                      quantity: _tickets,
+                    );
+                    // The basket is a singleton, so every page sees this.
+                    BasketRepository.instance.addItem(item);
+                    setState(() {
                       _message =
                           'Added $_tickets ticket(s) for ${movie.title} to your order.';
-                    }
-                  });
+                    });
+                  } else {
+                    // Nothing chosen, so nothing is added to the basket.
+                    setState(() {
+                      _message = 'Please select at least one ticket.';
+                    });
+                  }
                 },
-                child: const Text('ADD TO ORDER'),
               ),
               const SizedBox(height: 8),
               Text(
