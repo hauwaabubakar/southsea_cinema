@@ -1,17 +1,14 @@
 import 'package:southsea_cinema/models/basket_item.dart';
 
-// Worksheet 5, Ex 4: the basket repository.
-//
 // Like MovieRepository, this class sits between the data and the screens.
-// The difference is that it is a SINGLETON: only one copy ever exists.
-//
+//SINGLETON: only one copy ever exists.
+
 // Why? The listing page, the basket page and the tests all need to see the
 // SAME basket. If each made its own repository, a ticket added on one page
 // would never appear on another.
 class BasketRepository {
-  // A PRIVATE constructor (the underscore makes it private to this file).
-  // Code outside this file cannot call it, so nobody can create a second
-  // basket by accident.
+  //only private so no other file outside can call it
+  //resulting in creating a second basket (yikes!!)
   BasketRepository._internal();
 
   // The one shared copy. "static" means it belongs to the class itself, so
@@ -19,6 +16,9 @@ class BasketRepository {
   // "final" means it is created once and never replaced.
   static final BasketRepository instance = BasketRepository._internal();
 
+  // a service charge which only applies when basket not empty
+  //also added to verey order with a ticket in it
+  static const double serviceChargeAmount = 4.00;
   // The tickets in the basket. Private, so only this class can change it.
   final List<BasketItem> _items = [];
 
@@ -57,9 +57,9 @@ class BasketRepository {
     return getTotalItems();
   }
 
-  // The basket total: every line's cost added together.
-  // Tickets have no delivery fee, so the total is just the sum of the lines.
-  double getTotal() {
+  // The cost of all the tickets: every line's cost added together,
+  // before the service charge.
+  double getSubtotal() {
     double sum = 0.0;
     for (final BasketItem item in _items) {
       sum += item.lineTotal;
@@ -67,7 +67,21 @@ class BasketRepository {
     return sum;
   }
 
-  // Empties the basket, for example after checkout.
+  // The service charge: nothing for an empty basket, otherwise the flat
+  // amount above.
+  double getServiceCharge() {
+    if (_items.isEmpty) {
+      return 0.0;
+    }
+    return serviceChargeAmount;
+  }
+
+  // The final amount the customer pays: tickets plus service charge.
+  double getTotalDue() {
+    return getSubtotal() + getServiceCharge();
+  }
+
+  // Empties the basket, for example after buying the tickets.
   void clear() {
     _items.clear();
   }

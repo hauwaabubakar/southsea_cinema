@@ -4,7 +4,7 @@ import 'package:southsea_cinema/models/movie.dart';
 import 'package:southsea_cinema/repositories/basket_repository.dart';
 
 // Worksheet 5, Ex 4: unit tests for BasketRepository.
-//
+
 // Two sample films with known prices (£10.00 and £6.00). Using our own
 // fixed films means the tests don't depend on the real repository data or
 // on poster image files, so the sums below are predictable.
@@ -46,7 +46,9 @@ void main() {
       expect(basket.getItems().length, 0);
       expect(basket.getTotalItems(), 0);
       expect(basket.totalItemCount, 0);
-      expect(basket.getTotal(), 0.0);
+      expect(basket.getSubtotal(), 0.0);
+      expect(basket.getServiceCharge(), 0.0);
+      expect(basket.getTotalDue(), 0.0);
     });
 
     // Checks adding and the maths, using the two sample films.
@@ -69,7 +71,10 @@ void main() {
       expect(basket.getTotalItems(), 3);
       expect(basket.totalItemCount, 3);
       // 2 tickets at £10.00 plus 1 ticket at £6.00 is £26.00.
-      expect(basket.getTotal(), 26.0);
+      expect(basket.getSubtotal(), 26.0);
+      // The flat service charge is £4.00, so the total due is £30.00.
+      expect(basket.getServiceCharge(), 4.0);
+      expect(basket.getTotalDue(), 30.0);
     });
 
     // Checks removing a line by its position (index 0 is the first line).
@@ -84,9 +89,10 @@ void main() {
 
       basket.removeItem(0);
 
-      // The basket is empty again, and the total drops back to zero.
+      // The basket is empty again, so the charge and total drop to zero.
       expect(basket.getItems().length, 0);
-      expect(basket.getTotal(), 0.0);
+      expect(basket.getServiceCharge(), 0.0);
+      expect(basket.getTotalDue(), 0.0);
     });
 
     // Extra test (not in the worksheet): the exercise asks for clearing,
@@ -109,7 +115,7 @@ void main() {
 
       expect(basket.getItems().length, 0);
       expect(basket.getTotalItems(), 0);
-      expect(basket.getTotal(), 0.0);
+      expect(basket.getTotalDue(), 0.0);
     });
   });
 }
