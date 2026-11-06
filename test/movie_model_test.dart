@@ -53,6 +53,52 @@ void main() {
       expect(_movieWithRating('15').isAdultOnly, false);
       expect(_movieWithRating('PG').isAdultOnly, false);
     });
+
+    // NEW (Worksheet 6): converting a map to a Movie and back keeps
+    // every field.
+    test('JSON conversion preserves every movie field', () {
+      final Map<String, dynamic> data = <String, dynamic>{
+        'id': 'test-film',
+        'title': 'Test Film',
+        'ageRating': 'PG',
+        'runtime': '1h 30m',
+        'description': 'A film used for testing.',
+        'screeningTime': 'Friday 23 Oct 2026, 20:00',
+        'price': 7.50,
+        'posterPath': 'assets/images/the_conjuring_2.jpg',
+      };
+
+      final Movie movie = Movie.fromJson(data);
+      expect(movie.id, 'test-film');
+      expect(movie.title, 'Test Film');
+      expect(movie.ageRating, 'PG');
+      expect(movie.runtime, '1h 30m');
+      expect(movie.description, 'A film used for testing.');
+      expect(movie.screeningTime, 'Friday 23 Oct 2026, 20:00');
+      expect(movie.price, 7.50);
+      expect(movie.posterPath, 'assets/images/the_conjuring_2.jpg');
+      // toJson should give back exactly the map we started with.
+      expect(movie.toJson(), data);
+    });
+
+    // NEW (Worksheet 6): JSON may hold a whole number like 5, not 5.0.
+    // fromJson must still give us a double.
+    test('fromJson accepts a whole-number price', () {
+      final Map<String, dynamic> data = <String, dynamic>{
+        'id': 'test',
+        'title': 'Test Film',
+        'ageRating': 'U',
+        'runtime': '1h 00m',
+        'description': 'Test film.',
+        'screeningTime': 'Friday 23 Oct 2026, 20:00',
+        'price': 5,
+        'posterPath': 'assets/images/the_conjuring_2.jpg',
+      };
+
+      final Movie movie = Movie.fromJson(data);
+      expect(movie.price, 5.0);
+      expect(movie.price, isA<double>());
+    });
   });
 }
 

@@ -3,6 +3,10 @@ import 'package:southsea_cinema/models/movie.dart';
 import 'package:southsea_cinema/repositories/movie_repository.dart';
 
 void main() {
+  // Worksheet 6: connects the tests to Flutter services, so they can read
+  // assets. Plain test() calls don't do this automatically.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('MovieRepository unit tests', () {
     test('getMovies returns at least two movies', () {
       final MovieRepository repository = MovieRepository();
@@ -55,6 +59,22 @@ void main() {
       expect(cheap, isNotEmpty);
       expect(cheap.every((movie) => movie.price <= 10), true);
       expect(repository.getMoviesUnderPrice(5), isEmpty);
+    });
+
+    // NEW (Worksheet 6): loads the real movies.json and checks every film.
+    // The callback is async so it can await the loader.
+    test('loadMoviesFromAsset reads every film from the bundled JSON',
+        () async {
+      final MovieRepository repository = MovieRepository();
+      final List<Movie> movies = await repository.loadMoviesFromAsset();
+
+      expect(movies.length, 2);
+      expect(movies[0].id, 'the-odyssey');
+      expect(movies[0].title, 'The Odyssey');
+      expect(movies[1].id, 'the-conjuring-2');
+      expect(movies[1].title, 'The Conjuring 2');
+      // getMovies() now returns the cached list from the load.
+      expect(repository.getMovies(), movies);
     });
   });
 }

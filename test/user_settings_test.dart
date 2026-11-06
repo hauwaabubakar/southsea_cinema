@@ -15,7 +15,7 @@ void main() {
     });
 
     // Test 2: values passed to the constructor are stored.
-    
+
     test('configured UserSettings stores the values passed in', () {
       const UserSettings settings = UserSettings(
         address: 'Buckingham Building, Lion Terrace, Portsmouth, PO1 3HE',

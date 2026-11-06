@@ -1,7 +1,26 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:southsea_cinema/models/movie.dart';
 
+// The one place the film data comes from.
 class MovieRepository {
+  // Worksheet 6: holds the most recently loaded list. It starts as null
+  // (the ? means "a list or null") because nothing has been loaded yet.
+  List<Movie>? _cachedMovies;
+
   List<Movie> getMovies() {
+    // Worksheet 6: if a load has already finished, return that list.
+    // We copy the field into a local variable first. After the != null
+    // check, Dart knows the local copy can't be null, so it can be
+    // returned as a List<Movie>.
+    final List<Movie>? cachedMovies = _cachedMovies;
+    if (cachedMovies != null) {
+      return cachedMovies;
+    }
+
+    // Otherwise, the fixed list typed in below (kept so the earlier
+    // lookup tests still work without loading a file).
     return const [
       Movie(
         id: 'the-odyssey',
@@ -65,5 +84,36 @@ class MovieRepository {
       }
     }
     return matches;
+  }
+
+  // Worksheet 6: reads the films from the bundled JSON file.
+  //
+  // Future<List<Movie>> means "a list of films that arrives later".
+  // assetPath is an optional named parameter with a default, so
+  // loadMoviesFromAsset() reads assets/data/movies.json, while a test
+  // could pass a different path.
+  Future<List<Movie>> loadMoviesFromAsset({
+    String assetPath = 'assets/data/movies.json',
+  }) async {
+    // rootBundle reads files listed under assets: in pubspec.yaml.
+    // await waits for the text before moving on.
+    final String jsonString = await rootBundle.loadString(assetPath);
+
+    // jsonDecode turns JSON text into Dart lists and maps. It can't know
+    // what the file holds, so we check it's a list with "as List<dynamic>".
+    final dynamic decodedData = jsonDecode(jsonString);
+    final List<dynamic> jsonList = decodedData as List<dynamic>;
+    final List<Movie> loadedMovies = [];
+
+    // Each item is one JSON object, so check it's a map, then convert it.
+    for (final dynamic item in jsonList) {
+      final Map<String, dynamic> itemMap = item as Map<String, dynamic>;
+      final Movie movie = Movie.fromJson(itemMap);
+      loadedMovies.add(movie);
+    }
+
+    // Remember the list, so getMovies() returns it from now on.
+    _cachedMovies = loadedMovies;
+    return loadedMovies;
   }
 }
