@@ -5,10 +5,10 @@ import 'package:southsea_cinema/repositories/basket_repository.dart';
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
 import 'package:southsea_cinema/widgets/primary_button.dart';
 
-// Worksheet 5, Ex 5: the basket page. It reads the shared BasketRepository
-// and lets the customer remove tickets or check out.
+// Worksheet 5, Ex 5: the basket page ("MY ORDER"). It reads the shared
+// BasketRepository and lets the customer remove tickets or buy them.
 //
-// It is stateful because removing an item or checking out changes what is
+// It is stateful because removing an item or buying changes what is
 // shown, and setState tells Flutter to redraw.
 class BasketScreen extends StatefulWidget {
   const BasketScreen({super.key});
@@ -20,7 +20,13 @@ class BasketScreen extends StatefulWidget {
 }
 
 class _BasketScreenState extends State<BasketScreen> {
-  // Shown after checkout. Checkout empties the basket, so without this the
+  // Column widths, shared by the heading row and every ticket row so the
+  // three columns (Item, Details, Price) line up exactly.
+  static const double _itemColumnWidth = 80.0;
+  static const double _priceColumnWidth = 64.0;
+  static const double _deleteColumnWidth = 56.0;
+
+  // Shown after buying. Buying empties the basket, so without this the
   // customer would only see "Your basket is empty" with no confirmation.
   String _confirmationMessage = '';
 
@@ -37,43 +43,111 @@ class _BasketScreenState extends State<BasketScreen> {
     );
   }
 
-  // One row in the basket: quantity and film on the left, cost underneath,
-  // and a delete icon on the right.
+  // The heading row: Item, Details and Price, in bold white.
+  Widget _buildHeadingRow() {
+    const TextStyle headingStyle = TextStyle(
+      color: cinemaFontWhite,
+      fontWeight: FontWeight.bold,
+      fontSize: 16,
+    );
+
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: _itemColumnWidth,
+            child: Text('Item', style: headingStyle),
+          ),
+          // Details takes all the space that is left over.
+          Expanded(
+            child: Text('Details', style: headingStyle),
+          ),
+          SizedBox(
+            width: _priceColumnWidth,
+            child: Text(
+              'Price',
+              style: headingStyle,
+              textAlign: TextAlign.right,
+            ),
+          ),
+          // An empty box the same width as the delete button column.
+          SizedBox(width: _deleteColumnWidth),
+        ],
+      ),
+    );
+  }
+
+  // One row in the basket: "2 Tickets" in blue, the details, the price,
+  // and a blue delete button with a white bin icon.
   Widget _buildLineItem(BasketRepository basket, BasketItem item, int index) {
+    // "1 Ticket" for one, "2 Tickets" for more.
+    final String ticketWord;
+    if (item.quantity == 1) {
+      ticketWord = 'Ticket';
+    } else {
+      ticketWord = 'Tickets';
+    }
+
+    // Quantity and ticket type on the first line, then the film in capitals,
+    // its screening time and the room, as in the worksheet screenshot.
+    final String details = '${item.quantity} Standard\n'
+        '${item.movie.title.toUpperCase()}, '
+        '${item.movie.screeningTime}, Southsea Cinema Room';
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
+        // Line everything up at the top of the row.
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Expanded gives the text the space left over, so a long film
-          // title wraps and the delete icon always stays visible.
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${item.quantity} x ${item.movie.title}',
-                  style: const TextStyle(
-                    color: cinemaFontWhite,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // lineTotal comes from BasketItem: price x quantity.
-                Text(
-                  '£${item.lineTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(color: cinemaFontMuted),
-                ),
-              ],
+          SizedBox(
+            width: _itemColumnWidth,
+            child: Text(
+              '${item.quantity} $ticketWord',
+              style: const TextStyle(
+                color: cinemaBrand,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
-            onPressed: () {
-              // Remove this line from the basket, then redraw the page.
-              setState(() {
-                basket.removeItem(index);
-              });
-            },
+          Expanded(
+            child: Text(
+              details,
+              style: const TextStyle(color: cinemaFontWhite, fontSize: 16),
+            ),
+          ),
+          SizedBox(
+            width: _priceColumnWidth,
+            // lineTotal comes from BasketItem: price x quantity.
+            child: Text(
+              '£${item.lineTotal.toStringAsFixed(2)}',
+              textAlign: TextAlign.right,
+              style: const TextStyle(color: cinemaFontWhite, fontSize: 16),
+            ),
+          ),
+          SizedBox(
+            width: _deleteColumnWidth,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              // The Container paints the brand-blue square behind the icon.
+              child: Container(
+                color: cinemaBrand,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: cinemaFontWhite,
+                  ),
+                  onPressed: () {
+                    // Remove this line from the basket, then redraw.
+                    setState(() {
+                      basket.removeItem(index);
+                    });
+                  },
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -88,14 +162,14 @@ class _BasketScreenState extends State<BasketScreen> {
       style = const TextStyle(
         color: cinemaFontWhite,
         fontWeight: FontWeight.bold,
-        fontSize: 16,
+        fontSize: 20,
       );
     } else {
-      style = const TextStyle(color: cinemaFontMuted);
+      style = const TextStyle(color: cinemaFontWhite, fontSize: 16);
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         // Pushes the label to the far left and the value to the far right.
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -112,8 +186,8 @@ class _BasketScreenState extends State<BasketScreen> {
   Widget _buildBasketList(BasketRepository basket, List<BasketItem> items) {
     final List<Widget> children = [];
 
-    children.add(const Text('Your basket', style: cinemaHeaderStyle));
-    children.add(const SizedBox(height: 16));
+    children.add(const Text('MY ORDER', style: cinemaHeaderStyle));
+    children.add(_buildHeadingRow());
 
     // One row for every line in the basket.
     for (int index = 0; index < items.length; index++) {
@@ -121,36 +195,51 @@ class _BasketScreenState extends State<BasketScreen> {
       children.add(_buildLineItem(basket, item, index));
     }
 
-    // The summary: how many tickets, and what they cost in total.
-    children.add(const SizedBox(height: 24));
+    // The summary: the service charge, then the total due.
+    children.add(const SizedBox(height: 16));
     children.add(
       _buildTotalRow(
-        'Tickets',
-        '${basket.getTotalItems()}',
+        'Service Charge',
+        '£${basket.getServiceCharge().toStringAsFixed(2)}',
       ),
     );
     children.add(
       _buildTotalRow(
-        'Total to pay',
-        '£${basket.getTotal().toStringAsFixed(2)}',
+        'Total Due',
+        '£${basket.getTotalDue().toStringAsFixed(2)}',
         emphasise: true,
       ),
     );
     children.add(const SizedBox(height: 24));
 
-    // Checkout empties the basket and stores a thank-you message.
+    // The two buttons: one at each end of the row.
     children.add(
-      SizedBox(
-        width: double.infinity,
-        child: PrimaryButton(
-          label: 'Checkout',
-          onPressed: () {
-            setState(() {
-              basket.clear();
-              _confirmationMessage = 'Thanks, your tickets are booked';
-            });
-          },
-        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          PrimaryButton(
+            label: 'UPDATE ORDER',
+            onPressed: () {
+              // Go back to the film list so the customer can change their
+              // tickets. popUntil removes pages until the first one (the
+              // home page) is showing.
+              Navigator.popUntil(context, (Route<dynamic> route) {
+                return route.isFirst;
+              });
+            },
+          ),
+          PrimaryButton(
+            label: 'BUY TICKETS',
+            onPressed: () {
+              // Empty the basket and store a thank-you message.
+              // Saved bookings come in a later worksheet.
+              setState(() {
+                basket.clear();
+                _confirmationMessage = 'Thanks, your tickets are booked';
+              });
+            },
+          ),
+        ],
       ),
     );
 
@@ -169,7 +258,7 @@ class _BasketScreenState extends State<BasketScreen> {
     // Decide what to show: the empty message, or the list of tickets.
     final Widget content;
     if (items.isEmpty) {
-      // After checkout the basket is empty, but we still show the thank-you
+      // After buying, the basket is empty, but we still show the thank-you
       // message under the empty-basket text.
       if (_confirmationMessage.isNotEmpty) {
         content = Column(
@@ -196,7 +285,7 @@ class _BasketScreenState extends State<BasketScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text(appTitle)),
       drawer: const NavDrawer(),
-      // Scrolls, so long baskets and the Checkout button stay reachable.
+      // Scrolls, so long baskets and the buttons stay reachable.
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: content,
