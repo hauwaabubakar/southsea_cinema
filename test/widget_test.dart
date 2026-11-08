@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:southsea_cinema/constants.dart';
 import 'package:southsea_cinema/main.dart';
+import 'package:southsea_cinema/views/basket_screen.dart';
 import 'package:southsea_cinema/views/home_view.dart';
 import 'package:southsea_cinema/views/movie_listing.dart';
 
 // Builds the app and taps a BOOK NOW button to open a listing page.
 Future<void> openListing(WidgetTester tester, {bool last = false}) async {
   await tester.pumpWidget(const SouthseaCinemaApp());
+  // Waits for the films to load from movies.json.
   await tester.pumpAndSettle();
 
   final Finder button =
@@ -31,7 +34,29 @@ Future<void> openListing(WidgetTester tester, {bool last = false}) async {
 }
 
 void main() {
+  // Worksheet 6: runs before each test. It clears cached asset reads, so a
+  // test never reuses an unfinished read from an earlier test.
+  setUp(() {
+    rootBundle.clear();
+  });
+
   group('Home page widget tests', () {
+    // Extra test (not in the worksheet): right after the app is built, the
+    // films haven't loaded yet, so a spinner shows. Once everything
+    // settles, the spinner is gone and the first film is on screen.
+    testWidgets('home page shows a spinner until the films load',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(const SouthseaCinemaApp());
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('The Odyssey (15)'), findsNothing);
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('The Odyssey (15)'), findsOneWidget);
+    });
+
     testWidgets('home page shows title, films and booking buttons',
         (WidgetTester tester) async {
       await tester.pumpWidget(const SouthseaCinemaApp());
@@ -52,6 +77,19 @@ void main() {
 
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Movie Listing'), findsNothing);
+    });
+
+    // Extra test (not in the worksheet): the basket icon in the app bar
+    // opens the basket page.
+    testWidgets('basket icon opens the basket page',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(const SouthseaCinemaApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.shopping_basket));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BasketScreen), findsOneWidget);
     });
   });
 
@@ -95,6 +133,7 @@ void main() {
       expect(find.text('BOOK NOW'), findsNWidgets(2));
     });
   });
+
   group('Booking widget tests', () {
     testWidgets('ADD TO ORDER with no tickets asks for a ticket',
         (WidgetTester tester) async {
