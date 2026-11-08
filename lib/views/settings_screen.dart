@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:southsea_cinema/constants.dart';
 import 'package:southsea_cinema/models/user_settings.dart';
 import 'package:southsea_cinema/widgets/nav_drawer.dart';
 import 'package:southsea_cinema/widgets/primary_button.dart';
 
+// Worksheet 6, Ex 4: the names (keys) the saved values are stored under.
+// Each saved value needs a stable key, so we can find it again later.
+// Constants like these live at the top of the file, outside the class.
+const String prefAddress = 'user_address';
+const String prefEmail = 'user_email';
+const String prefPatronNumber = 'user_patron_number';
+const String prefNewsletter = 'user_newsletter';
+
 // Worksheet 5, Ex 6: the "My Settings" form on the /settings page.
+// Worksheet 6, Ex 4: it now REMEMBERS the details between visits.
 //
 // It is stateful because the page changes while the customer uses it: the
-// switch flips and a confirmation message appears after saving.
+// form fills in when it loads, the switch flips, and a confirmation message
+// appears after saving.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -28,19 +39,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // The current position of the "Receive news by email" switch.
   bool _receiveNewsletter = false;
 
-  // The last profile that was saved. Cancel puts the form back to these.
+  // The last profile that was saved (or loaded). Cancel puts the form back
+  // to these.
   UserSettings _savedSettings = const UserSettings();
 
   // Feedback shown after the customer presses SAVE SETTINGS.
   String _confirmationMessage = '';
 
-  // Called once when the page is first created: set the controllers up.
+  // Called once when the page is first created: set the controllers up,
+  // then start loading any saved details.
   @override
   void initState() {
     super.initState();
     _addressController = TextEditingController();
     _emailController = TextEditingController();
     _patronNumberController = TextEditingController();
+    // Start loading the saved values. This stays synchronous: it only
+    // STARTS the loading method, which does the awaiting.
+    _loadSettings();
   }
 
   // Called when the page is removed. Controllers use system resources, so
@@ -53,13 +69,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+  // Worksheet 6, Ex 4: reads the saved values and fills the form.
+  // Future<void> means "this takes time and gives back nothing".
+  Future<void> _loadSettings() async {
+    // Creating the store does not need await. Each READ does, because
+    // reading from storage takes time.
+    final SharedPreferencesAsync prefs = SharedPreferencesAsync();
+    final String? savedAddress = await prefs.getString(prefAddress);
+    final String? savedEmail = await prefs.getString(prefEmail);
+    final String? savedPatronNumber = await prefs.getString(prefPatronNumber);
+    final bool? savedNewsletter = await prefs.getBool(prefNewsletter);
+
+    // The ? means "a value, or null". A value is null when nothing has been
+    // saved under that key yet (the first time the page is ever opened).
+    // Each check below uses the saved value, or an empty default.
+    String address = '';
+    if (savedAddress != null) {
+      address = savedAddress;
+    }
+
+    String email = '';
+    if (savedEmail != null) {
+      email = savedEmail;
+    }
+
+    String patronNumber = '';
+    if (savedPatronNumber != null) {
+      patronNumber = savedPatronNumber;
+    }
+
+    bool newsletter = false;
+    if (savedNewsletter != null) {
+      newsletter = savedNewsletter;
+    }
+
+    // mounted is true while this page is still on screen. While we were
+    // waiting for storage, the customer may have left the page.
+    if (!mounted) {
+      return;
+    }
+
+    // Put the saved values into the form. _savedSettings is updated too,
+    // so Cancel returns to the loaded values (a cinema addition).
+    setState(() {
+      _addressController.text = address;
+      _emailController.text = email;
+      _patronNumberController.text = patronNumber;
+      _receiveNewsletter = newsletter;
+      _savedSettings = UserSettings(
+        address: address,
+        email: email,
+        patronNumber: patronNumber,
+        receiveNewsletter: newsletter,
+      );
+    });
+  }
+
   // Runs when SAVE SETTINGS is pressed.
-  // Not an override, so there is no @override above it.
-  void _saveSettings() {
+  // It is now async, because writing to storage takes time.
+  Future<void> _saveSettings() async {
     // .text reads what was typed. .trim() removes extra spaces at the ends.
     final String address = _addressController.text.trim();
     final String email = _emailController.text.trim();
     final String patronNumber = _patronNumberController.text.trim();
+
+    // Write each value under its key. await waits for each write to
+    // finish before moving on.
+    final SharedPreferencesAsync prefs = SharedPreferencesAsync();
+    await prefs.setString(prefAddress, address);
+    await prefs.setString(prefEmail, email);
+    await prefs.setString(prefPatronNumber, patronNumber);
+    await prefs.setBool(prefNewsletter, _receiveNewsletter);
 
     // Gather the values into one UserSettings object.
     final UserSettings settings = UserSettings(
@@ -69,7 +149,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       receiveNewsletter: _receiveNewsletter,
     );
 
-    // Show the confirmation. setState makes Flutter redraw the page.
+    // The customer may have left the page while we were saving.
+    if (!mounted) {
+      return;
+    }
+
+    // Show the confirmation. It now appears AFTER the saves have finished.
     setState(() {
       _savedSettings = settings;
       _confirmationMessage = 'Settings saved';
