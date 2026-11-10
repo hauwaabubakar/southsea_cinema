@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:southsea_cinema/views/settings_screen.dart';
 
-// Worksheet 5, Ex 6: widget tests for the settings form.
+// Worksheet 5, Ex 6 and Worksheet 6, Ex 5: widget tests for the settings
+// form, including loading and saving preferences.
 void main() {
-  // NEW (Worksheet 6): before every test, use an EMPTY in-memory store
-  // instead of the real storage, so tests never read or change a real
-  // saved profile.
+  // Before every test, use an EMPTY in-memory store instead of the real
+  // storage, so tests never read or change a real saved profile.
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
         InMemorySharedPreferencesAsync.empty();
@@ -19,7 +20,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
-    // NEW: waits for the saved values to finish loading.
+    // Waits for the saved values to finish loading.
     await tester.pumpAndSettle();
 
     expect(find.text('My Settings'), findsOneWidget);
@@ -31,9 +32,35 @@ void main() {
     expect(find.text('SAVE SETTINGS'), findsOneWidget);
   });
 
-  // Test 2: type into the boxes, flip the switch, save, and check the
-  // confirmation. The details are fictional, as the coursework asks.
-  testWidgets('Toggling switch and saving settings shows confirmation', (
+  // Test 2 (new, Worksheet 6): the form fills itself in from saved values.
+  testWidgets('SettingsScreen pre-fills saved settings on open', (
+    WidgetTester tester,
+  ) async {
+    // Replace the empty store with one that already holds a saved profile.
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData(<String, Object>{
+      prefAddress: '10 Elm Road, Southsea',
+      prefEmail: 'alex@example.com',
+      prefPatronNumber: '1234',
+      prefNewsletter: true,
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+
+    // Each saved value appears in its box.
+    expect(find.text('10 Elm Road, Southsea'), findsOneWidget);
+    expect(find.text('alex@example.com'), findsOneWidget);
+    expect(find.text('1234'), findsOneWidget);
+    // find.byType(Switch) finds the switch by its type, and
+    // tester.widget<Switch> lets us read its value.
+    final Switch switchWidget = tester.widget<Switch>(find.byType(Switch));
+    expect(switchWidget.value, isTrue);
+  });
+
+  // Test 3 (updated, Worksheet 6): type, flip the switch, save, then check
+  // the confirmation, the stored values, and a reopened screen.
+  testWidgets('Toggling switch and saving settings updates state', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
@@ -45,9 +72,9 @@ void main() {
     final Finder patronField = find.widgetWithText(TextField, 'Patron Number');
 
     // enterText types into a box like a user would.
-    await tester.enterText(addressField, '10 Elm Road, Portsmouth');
-    await tester.enterText(emailField, 'alex@example.com');
-    await tester.enterText(patronField, '1234');
+    await tester.enterText(addressField, '25 Seaview Road, Southsea');
+    await tester.enterText(emailField, 'sam@example.com');
+    await tester.enterText(patronField, '5678');
 
     // The switch starts off. Tapping it turns it on.
     final Finder switchFinder = find.byType(Switch);
@@ -58,14 +85,33 @@ void main() {
     await tester.pump();
     expect(tester.widget<Switch>(switchFinder).value, isTrue);
 
-    // Press SAVE SETTINGS and check the message under the buttons.
+    // Press SAVE SETTINGS. pumpAndSettle lets the saves finish first.
     await tester.ensureVisible(find.text('SAVE SETTINGS'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('SAVE SETTINGS'));
-    // CHANGED: pumpAndSettle (was pump), so the saves finish first.
     await tester.pumpAndSettle();
 
     expect(find.text('Settings saved'), findsOneWidget);
+
+    // Read the in-memory store to prove the values were really SAVED, not
+    // just shown in the form.
+    final SharedPreferencesAsync prefs = SharedPreferencesAsync();
+    expect(await prefs.getString(prefAddress), '25 Seaview Road, Southsea');
+    expect(await prefs.getString(prefEmail), 'sam@example.com');
+    expect(await prefs.getString(prefPatronNumber), '5678');
+    expect(await prefs.getBool(prefNewsletter), isTrue);
+
+    // Pumping an empty widget removes the settings screen, so the next
+    // pumpWidget builds a fresh one that must load the saved values again.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('25 Seaview Road, Southsea'), findsOneWidget);
+    expect(find.text('sam@example.com'), findsOneWidget);
+    expect(find.text('5678'), findsOneWidget);
+    final Switch reopenedSwitch = tester.widget<Switch>(find.byType(Switch));
+    expect(reopenedSwitch.value, isTrue);
   });
 
   // Extra test (not in the worksheet): CANCEL throws away what was typed
@@ -84,5 +130,36 @@ void main() {
     await tester.pump();
 
     expect(find.text('alex@example.com'), findsNothing);
+  });
+
+  // Extra test (not in the worksheet): after details are loaded, CANCEL
+  // returns the form to those LOADED values, not to empty boxes.
+  testWidgets('CANCEL restores the loaded values', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData(<String, Object>{
+      prefAddress: '10 Elm Road, Southsea',
+      prefEmail: 'alex@example.com',
+      prefPatronNumber: '1234',
+      prefNewsletter: false,
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+
+    // Change the email, then cancel.
+    final Finder emailField = find.widgetWithText(TextField, 'Email Address');
+    await tester.enterText(emailField, 'changed@example.com');
+    expect(find.text('changed@example.com'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('CANCEL'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CANCEL'));
+    await tester.pump();
+
+    // The loaded email is back.
+    expect(find.text('changed@example.com'), findsNothing);
+    expect(find.text('alex@example.com'), findsOneWidget);
   });
 }
